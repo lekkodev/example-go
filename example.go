@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/lekkodev/go-sdk/client"
@@ -22,9 +22,10 @@ func main() {
 	defer closer(ctx)
 
 	http.HandleFunc("/hello", serveHello(ctx, lekko))
-	log.Printf("Serving http on port 127.0.0.1:%d!\n", port)
+	fmt.Printf("Serving http on port 127.0.0.1:%d!\n", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
-		log.Fatalf("Error serving http: %v\n", err)
+		fmt.Printf("Error serving http: %v\n", err)
+		os.Exit(1)
 	}
 }
 
@@ -36,7 +37,8 @@ func startLekko(ctx context.Context) (client.Client, client.CloseFunc) {
 		RepoName:  "example",
 	})
 	if err != nil {
-		log.Fatalf("Failed to start sidecar provider: %v\n", err)
+		fmt.Printf("Failed to start sidecar provider: %v\n", err)
+		os.Exit(1)
 	}
 	return client.NewClient("default", sidecarProvider)
 }
@@ -45,11 +47,14 @@ func serveHello(ctx context.Context, lekko client.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
-		ctx = client.Add(ctx, "context-key", r.URL.Query().Get("context-key"))
-		log.Printf("Got /hello request\n")
+		urlVal := r.URL.Query().Get("context-key")
+		if len(urlVal) > 0 {
+			ctx = client.Add(ctx, "context-key", urlVal)
+		}
+		fmt.Printf("Got /hello request\n")
 		suffix, err := lekko.GetString(ctx, "hello")
 		if err != nil {
-			log.Printf("Failed to read from lekko sidecar: %v\n", err)
+			fmt.Printf("Failed to read from lekko sidecar: %v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w, "Connecting to lekko sidecar failed\n")
 			return
