@@ -1,7 +1,7 @@
 version: '3'
 services:
   sidecar:
-    image: public.ecr.aws/g0r8j2n2/lekko/sidecar:v0.0.8
+    image: public.ecr.aws/g0r8j2n2/lekko/sidecar:v0.0.14
     command:
       - --repo-path=/root/example/
       - --mode=static
