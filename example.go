@@ -32,15 +32,17 @@ func main() {
 func startLekko(ctx context.Context) (client.Client, client.CloseFunc) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	sidecarProvider, err := client.ConnectSidecarProvider(ctx, "https://localhost:50051", "test", &client.RepositoryKey{
+	rk := &client.RepositoryKey{
 		OwnerName: "lekkodev",
 		RepoName:  "example",
-	})
+	}
+	var opts []client.ProviderOption
+	provider, err := client.CachedGitFsProvider(ctx, rk, "../example/", opts...)
 	if err != nil {
 		fmt.Printf("Failed to start sidecar provider: %v\n", err)
 		os.Exit(1)
 	}
-	return client.NewClient("default", sidecarProvider)
+	return client.NewClient("default", provider)
 }
 
 func serveHello(ctx context.Context, lekko client.Client) http.HandlerFunc {
