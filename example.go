@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/lekkodev/go-sdk/client"
 )
@@ -30,14 +29,12 @@ func main() {
 }
 
 func startLekko(ctx context.Context) (client.Client, client.CloseFunc) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
 	rk := &client.RepositoryKey{
 		OwnerName: "lekkodev",
 		RepoName:  "example",
 	}
 	var opts []client.ProviderOption
-	provider, err := client.CachedGitFsProvider(ctx, rk, "../example/", opts...)
+	provider, err := client.CachedGitFsProvider(ctx, rk, "../example", opts...)
 	if err != nil {
 		fmt.Printf("Failed to start sidecar provider: %v\n", err)
 		os.Exit(1)
