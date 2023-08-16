@@ -5,5 +5,4 @@ build: ## Run go build.
 
 .PHONY: run
 run:
-	go run example.go
-
+	go run example.go --local
